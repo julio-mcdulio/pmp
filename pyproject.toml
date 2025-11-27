@@ -1,6 +1,6 @@
 [build-system]
-requires = ["uv>=0.4.0"]
-build-backend = "uv.build"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "pmp"

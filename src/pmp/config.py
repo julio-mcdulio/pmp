@@ -76,7 +76,7 @@ class ConfigManager:
         options: Dict[str, Any] = {}
         options.update(DEFAULT_BACKEND_OPTIONS.get(backend_name, {}))
         options.update(_ensure_dict(self._data.get("backends", {}).get(backend_name)))
-        if profile_payload:
+        if profile_payload and profile_payload.get("backend") == backend_name:
             options.update({k: v for k, v in profile_payload.items() if k != "backend"})
         if backend_name in env_backend_opts:
             options.update(env_backend_opts[backend_name])

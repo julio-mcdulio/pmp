@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from pmp.backends.base import PromptBackend
-from pmp.errors import PromptAlreadyExists, PromptNotFound, VersionNotFound
+from pmp.errors import PMPError, PromptAlreadyExists, PromptNotFound, VersionNotFound
 from pmp.models import PromptSummary, PromptVersion, utcnow_iso
 
 
@@ -16,9 +16,15 @@ class SQLiteBackend(PromptBackend):
     """Stores prompts in a SQLite database."""
 
     def __init__(self, path: str):
-        self.db_path = Path(path).expanduser()
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(self.db_path)
+        self.db_path = Path(path).expanduser().resolve()
+        try:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise PMPError(f'cannot create directory for database "{self.db_path}": {exc}') from exc
+        try:
+            self.conn = sqlite3.connect(str(self.db_path))
+        except sqlite3.OperationalError as exc:
+            raise PMPError(f'cannot open database file "{self.db_path}": {exc}') from exc
         self.conn.execute("PRAGMA foreign_keys = ON")
         self._ensure_schema()
 
