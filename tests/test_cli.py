@@ -118,3 +118,33 @@ def test_config_commands_and_profiles(monkeypatch: pytest.MonkeyPatch, tmp_path:
     assert "[profiles.remote]" in config_text
     assert 'backend = "sqlite"' in config_text
     assert str(sqlite_db) in config_text
+
+
+@pytest.mark.parametrize("backend_name", ["file", "sqlite"])
+def test_cli_error_flows(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, backend_name: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Ensure duplicate operations and missing resources surface clear errors."""
+    config_path, _ = _write_backend_config(tmp_path, backend_name)
+    monkeypatch.setenv("PMP_CONFIG_FILE", str(config_path))
+
+    assert cli.main(["add", "demo", "--content", "body"]) == 0
+    capsys.readouterr()
+
+    with pytest.raises(SystemExit) as duplicate_exit:
+        cli.main(["add", "demo", "--content", "second"])
+    assert duplicate_exit.value.code == 1
+    duplicate_err = capsys.readouterr().err
+    assert "already exists" in duplicate_err
+
+    with pytest.raises(SystemExit) as missing_version_exit:
+        cli.main(["delete", "demo", "--version", "42"])
+    assert missing_version_exit.value.code == 1
+    version_err = capsys.readouterr().err
+    assert "does not exist" in version_err or "not found" in version_err
+
+    with pytest.raises(SystemExit) as missing_prompt_exit:
+        cli.main(["get", "ghost"])
+    assert missing_prompt_exit.value.code == 1
+    missing_err = capsys.readouterr().err
+    assert "does not exist" in missing_err
