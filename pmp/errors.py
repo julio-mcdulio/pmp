@@ -1,28 +1,28 @@
- """Custom exceptions for PMP CLI."""
+"""Custom exceptions for PMP CLI."""
 
 
- class PMPError(Exception):
-     """Base error raised by PMP."""
+class PMPError(Exception):
+    """Base error raised by PMP."""
 
-     exit_code = 1
-
-
- class PromptAlreadyExists(PMPError):
-     """Raised when attempting to add a duplicate prompt."""
+    exit_code = 1
 
 
- class PromptNotFound(PMPError):
-     """Raised when a prompt cannot be located."""
+class PromptAlreadyExists(PMPError):
+    """Raised when attempting to add a duplicate prompt."""
 
 
- class VersionNotFound(PMPError):
-     """Raised when a specific prompt version does not exist."""
+class PromptNotFound(PMPError):
+    """Raised when a prompt cannot be located."""
 
 
- class ConfigError(PMPError):
-     """Raised when configuration is invalid or incomplete."""
+class VersionNotFound(PMPError):
+    """Raised when a specific prompt version does not exist."""
 
 
- class BackendError(PMPError):
-     """Raised when the backend reports an unrecoverable issue."""
+class ConfigError(PMPError):
+    """Raised when configuration is invalid or incomplete."""
+
+
+class BackendError(PMPError):
+    """Raised when the backend reports an unrecoverable issue."""
 
