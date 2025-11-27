@@ -112,8 +112,8 @@ class ConfigManager:
 
 # --------------------------------------------------------------------- helpers
 DEFAULT_BACKEND_OPTIONS: Dict[str, Dict[str, Any]] = {
-   "file": {"path": DEFAULT_FILE_BACKEND_PATH},
-   "sqlite": {"path": DEFAULT_SQLITE_BACKEND_PATH},
+    "file": {"path": DEFAULT_FILE_BACKEND_PATH},
+    "sqlite": {"path": DEFAULT_SQLITE_BACKEND_PATH},
 }
 
 

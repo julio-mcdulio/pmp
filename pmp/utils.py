@@ -16,13 +16,13 @@ def read_content(file_path: Optional[str], inline: Optional[str]) -> str:
         raise PMPError("provide either --file or --content, not both")
 
     if file_path:
-       path = Path(file_path).expanduser()
-       if not path.exists():
-           raise PMPError(f'file "{file_path}" does not exist')
-       try:
-           return path.read_text()
-       except PermissionError as exc:
-           raise PMPError(f'cannot read "{file_path}": permission denied') from exc
+        path = Path(file_path).expanduser()
+        if not path.exists():
+            raise PMPError(f'file "{file_path}" does not exist')
+        try:
+            return path.read_text()
+        except PermissionError as exc:
+            raise PMPError(f'cannot read "{file_path}": permission denied') from exc
 
     if inline is not None:
         return inline
