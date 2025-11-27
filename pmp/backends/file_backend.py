@@ -1,0 +1,132 @@
+"""Filesystem backend implementation."""
+
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+from typing import Dict, List, Optional
+
+from ..errors import PMPError, PromptAlreadyExists, PromptNotFound, VersionNotFound
+from ..models import PromptSummary, PromptVersion, utcnow_iso
+from .base import PromptBackend
+
+ SAFE_NAME = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+ class FileBackend(PromptBackend):
+     """Stores prompts as JSON documents on disk."""
+
+     def __init__(self, path: Optional[str] = None):
+         if not path:
+             raise ValueError("file backend requires a path")
+         self.root = Path(path).expanduser()
+         self.root.mkdir(parents=True, exist_ok=True)
+
+     # --------------------------------------------------------------- interface
+     def add(self, name: str, content: str, metadata: Dict[str, object]) -> None:
+         self._validate_name(name)
+         prompt_file = self._prompt_file(name)
+         if prompt_file.exists():
+             raise PromptAlreadyExists(f'prompt "{name}" already exists')
+         version = PromptVersion(name=name, version=1, content=content, metadata=metadata, created_at=utcnow_iso())
+         payload = {"name": name, "versions": [version.to_dict()]}
+         self._write(prompt_file, payload)
+
+     def get(self, name: str, version: Optional[int] = None) -> Dict[str, object]:
+         data = self._load(name)
+         versions = data["versions"]
+         if not versions:
+             raise PromptNotFound(f'prompt "{name}" does not have any versions')
+         if version is None:
+             return versions[-1]
+         for entry in versions:
+             if entry["version"] == version:
+                 return entry
+         raise VersionNotFound(f'prompt "{name}" version {version} not found')
+
+     def update(self, name: str, content: str, metadata: Dict[str, object]) -> None:
+         prompt_file = self._prompt_file(name)
+         if not prompt_file.exists():
+             raise PromptNotFound(f'prompt "{name}" does not exist')
+         data = self._read(prompt_file)
+         versions = data.setdefault("versions", [])
+         next_version = versions[-1]["version"] + 1 if versions else 1
+         versions.append(
+             PromptVersion(name=name, version=next_version, content=content, metadata=metadata, created_at=utcnow_iso()).to_dict()
+         )
+         self._write(prompt_file, data)
+
+     def delete(self, name: str, version: Optional[int] = None) -> None:
+         prompt_file = self._prompt_file(name)
+         if not prompt_file.exists():
+             raise PromptNotFound(f'prompt "{name}" does not exist')
+         data = self._read(prompt_file)
+         versions = data.get("versions", [])
+         if not versions:
+             raise PromptNotFound(f'prompt "{name}" does not contain any versions')
+         target_version = version or versions[-1]["version"]
+         remaining = [entry for entry in versions if entry["version"] != target_version]
+         if len(remaining) == len(versions):
+             raise VersionNotFound(f'prompt "{name}" version {target_version} not found')
+         if remaining:
+             data["versions"] = remaining
+             self._write(prompt_file, data)
+         else:
+             prompt_file.unlink()
+
+     def list(self, filters: Optional[Dict[str, object]] = None) -> List[Dict[str, object]]:
+         filters = filters or {}
+         results: List[Dict[str, object]] = []
+         for file in sorted(self.root.glob("*.json")):
+             payload = self._read(file)
+             versions = payload.get("versions", [])
+             if not versions:
+                 continue
+             latest = versions[-1]
+             metadata = latest.get("metadata", {})
+             if not _matches_filters(metadata, filters):
+                 continue
+             summary = PromptSummary(
+                 name=payload["name"],
+                 latest_version=latest["version"],
+                 updated_at=latest.get("created_at", ""),
+                 metadata=metadata,
+             )
+             results.append(summary.to_dict())
+         return results
+
+     # ---------------------------------------------------------------- helpers
+     def _prompt_file(self, name: str) -> Path:
+         return self.root / f"{name}.json"
+
+     def _load(self, name: str) -> Dict[str, object]:
+         prompt_file = self._prompt_file(name)
+         if not prompt_file.exists():
+             raise PromptNotFound(f'prompt "{name}" does not exist')
+         return self._read(prompt_file)
+
+     def _read(self, file_path: Path) -> Dict[str, object]:
+         return json.loads(file_path.read_text(encoding="utf-8"))
+
+     def _write(self, file_path: Path, payload: Dict[str, object]) -> None:
+         file_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+     @staticmethod
+     def _validate_name(name: str) -> None:
+         if not SAFE_NAME.match(name):
+            raise PMPError('prompt names may only include alphanumerics, ".", "_", or "-"')
+
+
+ def _matches_filters(metadata: Dict[str, object], filters: Dict[str, object]) -> bool:
+     tag = filters.get("tag")
+     if tag:
+         tags = metadata.get("tags") or []
+         if tag not in tags:
+             return False
+     model = filters.get("model")
+     if model:
+         if metadata.get("model") != model:
+             return False
+     return True
+

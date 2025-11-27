@@ -1,0 +1,24 @@
+ [build-system]
+ requires = ["setuptools>=68.0", "wheel"]
+ build-backend = "setuptools.build_meta"
+
+ [project]
+ name = "pmp"
+ version = "0.1.0"
+ description = "Prompt Management CLI"
+ readme = "README.md"
+ authors = [{ name = "PMP Contributors" }]
+ license = { text = "MIT" }
+ requires-python = ">=3.10"
+ dependencies = [
+     "PyYAML>=6.0"
+ ]
+
+ [project.optional-dependencies]
+ test = [
+     "pytest>=7.4"
+ ]
+
+ [project.scripts]
+ pmp = "pmp.cli:main"
+
