@@ -1,5 +1,7 @@
 # pmp
 
+A simple prompt management tool supporting different storage backends.
+
 Install pmp using uv or pip. The project requires Python 3.10 or higher.
 
 ```bash
