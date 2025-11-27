@@ -266,3 +266,25 @@ Output:
 ```
 test-sqlite
 ```
+
+## Integration with Other Tools
+
+pmp prompts can be easily used with other CLI tools. Here are examples using [llm](https://github.com/simonw/llm):
+
+```bash
+echo "Python is a programming language" | llm "$(pmp get summarize)"
+```
+
+Output: `Python is a versatile, high-level programming language known for its easy readability and wide range of applications.`
+
+```bash
+echo "def add(a, b): return a+b" | llm "$(pmp get short-review)"
+```
+
+Output: `The given code defines a simple function named add that takes two parameters, a and b, and returns their sum. It uses a concise format with a single-line return statement, which is clear and efficient for its intended purpose. However, it lacks type annotations and documentation, which could improve its usability and readability, especially in larger codebases.`
+
+```bash
+llm -s "$(pmp get explain-code)" "def square(x): return x*x"
+```
+
+Output: `The function square(x) takes an input x and returns its square by multiplying x by itself.`
