@@ -6,16 +6,16 @@ Install pmp using uv or pip. The project requires Python 3.10 or higher.
 
 ```bash
 # With uv
-uv pip install -e .
+$ uv pip install -e .
 
 # Or with regular pip
-pip install -e .
+$ pip install -e .
 ```
 
 For development, install with test dependencies:
 
 ```bash
-uv pip install -e ".[test]"
+$ uv pip install -e ".[test]"
 ```
 
 ## Configuration
@@ -23,63 +23,44 @@ uv pip install -e ".[test]"
 Configure pmp by setting the backend and storage location. The file backend stores prompts as JSON files, while the sqlite backend uses a SQLite database.
 
 ```bash
-pmp config set backend file
+$ pmp config set backend file
+backend = file
+
+$ pmp config set backends.file.path ~/.pmp/store
+backends.file.path = ~/.pmp/store
 ```
-
-Output: `backend = file`
-
-```bash
-pmp config set backends.file.path ~/.pmp/store
-```
-
-Output: `backends.file.path = ~/.pmp/store`
 
 Alternatively, create a profile for different storage configurations:
 
 ```bash
-pmp config profile add local --backend file --path ~/.pmp/local
+$ pmp config profile add local --backend file --path ~/.pmp/local
+profile "local" updated
+
+$ pmp config profile add remote --backend sqlite --path ~/.pmp/remote.db
+profile "remote" updated
+
+$ pmp config profile use local
+profile "local" activated
 ```
-
-Output: `profile "local" updated`
-
-```bash
-pmp config profile add remote --backend sqlite --path ~/.pmp/remote.db
-```
-
-Output: `profile "remote" updated`
-
-```bash
-pmp config profile use local
-```
-
-Output: `profile "local" activated`
 
 ## Adding Prompts
 
 Add a prompt with content, tags, and an associated model:
 
 ```bash
-pmp add demo --content "You are a helpful assistant" --tag "chat,general" --model "gpt-4"
+$ pmp add demo --content "You are a helpful assistant" --tag "chat,general" --model "gpt-4"
+prompt "demo" version 1 created
 ```
-
-Output: `prompt "demo" version 1 created`
 
 ## Retrieving Prompts
 
 Retrieve a prompt in different formats:
 
 ```bash
-pmp get demo
-```
+$ pmp get demo
+You are a helpful assistant
 
-Output: `You are a helpful assistant`
-
-```bash
-pmp get demo --format json
-```
-
-Output:
-```json
+$ pmp get demo --format json
 {
   "name": "demo",
   "version": 1,
@@ -93,14 +74,8 @@ Output:
   },
   "created_at": "2025-11-27T22:03:40+00:00"
 }
-```
 
-```bash
-pmp get demo --version 1 --format yaml
-```
-
-Output:
-```yaml
+$ pmp get demo --version 1 --format yaml
 name: demo
 version: 1
 content: You are a helpful assistant
@@ -117,41 +92,24 @@ created_at: '2025-11-27T22:03:40+00:00'
 Update an existing prompt to create a new version:
 
 ```bash
-pmp update demo --content "You are an expert assistant" --tag "expert,chat"
+$ pmp update demo --content "You are an expert assistant" --tag "expert,chat"
+prompt "demo" version 2 created
 ```
-
-Output: `prompt "demo" version 2 created`
 
 ## Listing Prompts
 
 List all prompts:
 
 ```bash
-pmp list
-```
-
-Output:
-```
+$ pmp list
 demo
-```
 
-```bash
-pmp list --long
-```
-
-Output:
-```
+$ pmp list --long
 NAME  VERSION  TAGS         MODEL  UPDATED
 ----  -------  -----------  -----  -------------------------
 demo  2        expert,chat  gpt-4  2025-11-27T22:03:49+00:00
-```
 
-```bash
-pmp list --format json
-```
-
-Output:
-```json
+$ pmp list --format json
 [
   {
     "name": "demo",
@@ -171,21 +129,11 @@ Output:
 Filter prompts by tag or model:
 
 ```bash
-pmp list --tag expert
-```
-
-Output:
-```
+$ pmp list --tag expert
 demo
 test2
-```
 
-```bash
-pmp list --model gpt-4
-```
-
-Output:
-```
+$ pmp list --model gpt-4
 demo
 ```
 
@@ -194,43 +142,31 @@ demo
 Delete a specific version or all versions of a prompt:
 
 ```bash
-pmp delete demo --version 1
+$ pmp delete demo --version 1
+prompt "demo" version 1 deleted
+
+$ pmp delete demo --force
+prompt "demo" deleted versions [2, 3]
 ```
-
-Output: `prompt "demo" version 1 deleted`
-
-```bash
-pmp delete demo --force
-```
-
-Output: `prompt "demo" deleted versions [2, 3]`
 
 ## Reading from Files
 
 Read prompt content from a file:
 
 ```bash
-pmp add my-prompt --file prompt.txt --tag "production"
+$ pmp add my-prompt --file prompt.txt --tag "production"
+prompt "my-prompt" version 1 created
 ```
-
-Output: `prompt "my-prompt" version 1 created`
 
 ## Viewing Configuration
 
 View and modify configuration:
 
 ```bash
-pmp config get backend
-```
+$ pmp config get backend
+file
 
-Output: `file`
-
-```bash
-pmp config list
-```
-
-Output:
-```toml
+$ pmp config list
 backend = "file"
 profile = "local"
 
@@ -255,17 +191,10 @@ path = "~/.pmp/remote.db"
 Override the active profile or backend for a single command:
 
 ```bash
-pmp --profile remote add temp-prompt --content "Temporary prompt"
-```
+$ pmp --profile remote add temp-prompt --content "Temporary prompt"
+prompt "temp-prompt" version 1 created
 
-Output: `prompt "temp-prompt" version 1 created`
-
-```bash
-pmp --backend sqlite list
-```
-
-Output:
-```
+$ pmp --backend sqlite list
 test-sqlite
 ```
 
@@ -274,28 +203,25 @@ test-sqlite
 pmp prompts can be easily used with other CLI tools. Here are examples using [llm](https://github.com/simonw/llm):
 
 ```bash
-echo "Python is a programming language" | llm "$(pmp get summarize)"
+$ echo "Python is a programming language" | llm "$(pmp get summarize)"
+Python is a versatile, high-level programming language known for its easy readability and wide range of applications.
 ```
-
-Output: `Python is a versatile, high-level programming language known for its easy readability and wide range of applications.`
 
 ```bash
-echo "def add(a, b): return a+b" | llm "$(pmp get short-review)"
+$ echo "def add(a, b): return a+b" | llm "$(pmp get short-review)"
+The given code defines a simple function named add that takes two parameters, a and b, and returns their sum. It uses a concise format with a single-line return statement, which is clear and efficient for its intended purpose. However, it lacks type annotations and documentation, which could improve its usability and readability, especially in larger codebases.
 ```
-
-Output: `The given code defines a simple function named add that takes two parameters, a and b, and returns their sum. It uses a concise format with a single-line return statement, which is clear and efficient for its intended purpose. However, it lacks type annotations and documentation, which could improve its usability and readability, especially in larger codebases.`
 
 ```bash
-llm -s "$(pmp get explain-code)" "def square(x): return x*x"
+$ llm -s "$(pmp get explain-code)" "def square(x): return x*x"
+The function square(x) takes an input x and returns its square by multiplying x by itself.
 ```
-
-Output: `The function square(x) takes an input x and returns its square by multiplying x by itself.`
 
 Chain multiple pmp calls together using pipes:
 
 ```bash
-PROMPT=$(pmp list --tag code | head -1 | xargs pmp get)
-echo "def add(a,b): return a+b" | llm -s "$PROMPT"
+$ PROMPT=$(pmp list --tag code | head -1 | xargs pmp get)
+$ echo "def add(a,b): return a+b" | llm -s "$PROMPT"
 ```
 
 This uses pipes to find prompts tagged with "code", selects the first one, retrieves it, then uses it as a system prompt with llm.
@@ -303,7 +229,8 @@ This uses pipes to find prompts tagged with "code", selects the first one, retri
 Generate a prompt using llm and store it back in pmp:
 
 ```bash
-pmp get generate-prompt | llm | pmp add python-reviewer --content "$(cat)" --tag "code,review"
+$ pmp get generate-prompt | llm | pmp add python-reviewer --content "$(cat)" --tag "code,review"
+prompt "python-reviewer" version 1 created
 ```
 
 This retrieves a prompt from pmp, uses it with llm to generate a new prompt, then stores the result back into pmp.
