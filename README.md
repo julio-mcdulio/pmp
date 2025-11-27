@@ -290,3 +290,20 @@ llm -s "$(pmp get explain-code)" "def square(x): return x*x"
 ```
 
 Output: `The function square(x) takes an input x and returns its square by multiplying x by itself.`
+
+Chain multiple pmp calls together using pipes:
+
+```bash
+PROMPT=$(pmp list --tag code | head -1 | xargs pmp get)
+echo "def add(a,b): return a+b" | llm -s "$PROMPT"
+```
+
+This uses pipes to find prompts tagged with "code", selects the first one, retrieves it, then uses it as a system prompt with llm.
+
+Generate a prompt using llm and store it back in pmp:
+
+```bash
+pmp get generate-prompt | llm | pmp add python-reviewer --content "$(cat)" --tag "code,review"
+```
+
+This retrieves a prompt from pmp, uses it with llm to generate a new prompt, then stores the result back into pmp.
