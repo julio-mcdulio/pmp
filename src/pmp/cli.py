@@ -6,12 +6,12 @@ import argparse
 import sys
 from typing import Dict, List, Optional, Sequence
 
-from .backends import load_backend
-from .config import ConfigManager, dumps as dump_config
-from .errors import ConfigError, PMPError
-from .output import as_json, as_yaml, render_table
-from .services import PromptService
-from .utils import parse_tags, read_content
+from pmp.backends import load_backend
+from pmp.config import ConfigManager, dumps as dump_config
+from pmp.errors import ConfigError, PMPError
+from pmp.output import as_json, as_yaml, render_table
+from pmp.services import PromptService
+from pmp.utils import parse_tags, read_content
 
 
 def build_parser() -> argparse.ArgumentParser:

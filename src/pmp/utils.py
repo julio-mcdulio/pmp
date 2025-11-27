@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from .errors import PMPError
+from pmp.errors import PMPError
 
 
 def read_content(file_path: Optional[str], inline: Optional[str]) -> str:

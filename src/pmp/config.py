@@ -13,8 +13,8 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python <3.11 fallback
     import tomli as tomllib  # type: ignore
 
-from .errors import ConfigError
-from .utils import expand_path
+from pmp.errors import ConfigError
+from pmp.utils import expand_path
 
 
 DEFAULT_FILE_BACKEND_PATH = "~/.local/share/pmp/prompts"

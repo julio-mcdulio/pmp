@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional
 
-from .backends.base import PromptBackend
-from .errors import PromptNotFound, VersionNotFound
+from pmp.backends.base import PromptBackend
+from pmp.errors import PromptNotFound, VersionNotFound
 
 
 class PromptService:

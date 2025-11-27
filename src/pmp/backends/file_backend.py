@@ -7,9 +7,9 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from ..errors import PMPError, PromptAlreadyExists, PromptNotFound, VersionNotFound
-from ..models import PromptSummary, PromptVersion, utcnow_iso
-from .base import PromptBackend
+from pmp.backends.base import PromptBackend
+from pmp.errors import PMPError, PromptAlreadyExists, PromptNotFound, VersionNotFound
+from pmp.models import PromptSummary, PromptVersion, utcnow_iso
 
 SAFE_NAME = re.compile(r"^[A-Za-z0-9._-]+$")
 

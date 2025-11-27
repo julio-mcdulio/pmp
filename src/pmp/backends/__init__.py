@@ -5,10 +5,10 @@ from __future__ import annotations
 from importlib import metadata
 from typing import Dict, Type
 
-from ..errors import ConfigError
-from .base import PromptBackend
-from .file_backend import FileBackend
-from .sqlite_backend import SQLiteBackend
+from pmp.backends.base import PromptBackend
+from pmp.backends.file_backend import FileBackend
+from pmp.backends.sqlite_backend import SQLiteBackend
+from pmp.errors import ConfigError
 
 BUILTIN_BACKENDS: Dict[str, Type[PromptBackend]] = {
     "file": FileBackend,

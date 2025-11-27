@@ -7,9 +7,9 @@ import sqlite3
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from ..errors import PromptAlreadyExists, PromptNotFound, VersionNotFound
-from ..models import PromptSummary, PromptVersion, utcnow_iso
-from .base import PromptBackend
+from pmp.backends.base import PromptBackend
+from pmp.errors import PromptAlreadyExists, PromptNotFound, VersionNotFound
+from pmp.models import PromptSummary, PromptVersion, utcnow_iso
 
 
 class SQLiteBackend(PromptBackend):
