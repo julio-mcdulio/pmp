@@ -16,9 +16,14 @@ dependencies = []
 yaml = ["PyYAML>=6.0"]
 test = ["pytest>=8.0"]
 
+dotprompt = ["pluggy>=1.0", "dotpromptz>=0.1.0"]
+
 [project.scripts]
 pmp = "pmp.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+    "dotprompt: marks tests as dotprompt template engine tests (deselect with '-m \"not dotprompt\"')",
+]
