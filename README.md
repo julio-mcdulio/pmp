@@ -27,9 +27,30 @@ For development, install with test dependencies:
 $ uv pip install -e ".[test]"
 ```
 
+### Basic Usage
+
+Get started with these essential commands:
+
+```bash
+$ pmp add hello --content "Hello, world!" --tag "greeting"
+prompt "hello" version 1 created
+
+$ pmp get hello
+Hello, world!
+
+$ pmp list
+hello
+
+$ pmp update hello --content "Hello, everyone!"
+prompt "hello" version 2 created
+
+$ pmp delete hello --force
+prompt "hello" deleted versions [1, 2]
+```
+
 ### Configuration
 
-Configure pmp by setting the backend and storage location. The file backend stores prompts as JSON files, while the sqlite backend uses a SQLite database.
+By default `pmp` uses the file store backend. You can optionally configure a different backend and storage location. The file backend stores prompts as JSON files, while the sqlite backend uses a SQLite database.
 
 ```bash
 $ pmp config set backend file
@@ -56,46 +77,10 @@ profile "local" activated
 
 `pmp` supports storage plugins that extend the default backends with additional functionality. Storage plugins use the pluggy plugin system and can be installed as optional dependencies.
 
-#### dotprompt
+The following plugins are currrently supported:
+- [dotprompt](./src/pmp/plugins/README.md)
 
-The `dotprompt` storage plugin provides support for the [dotprompt](https://github.com/google/dotprompt) file format, which stores prompts as files with YAML frontmatter and a template body.
-
-This format is compatible with tools that use the dotprompt specification and allows prompts to be stored in a human-readable format that can be easily edited and version controlled.
-
-To install the dotprompt plugin, include the dotprompt extra when installing pmp:
-
-```bash
-$ uv pip install -e ".[dotprompt]"
-```
-
-Or with regular pip:
-
-```bash
-$ pip install -e ".[dotprompt]"
-```
-
-Once installed, the dotprompt plugin is automatically available. Configure it by setting the backend to use the dotprompt storage format and specifying a storage path:
-
-```bash
-$ pmp config set backend dotprompt
-backend = dotprompt
-
-$ pmp config set backends.dotprompt.path ~/.pmp/dotprompts
-backends.dotprompt.path = ~/.pmp/dotprompts
-```
-
-The dotprompt plugin stores prompts as files with the .prompt extension. Each prompt file contains YAML frontmatter for metadata followed by the template body. When you add a prompt, the plugin automatically merges provided metadata into the frontmatter and creates a properly formatted dotprompt file.
-
-```bash
-$ pmp add greeting --content "Hello, {{name}}!" --tag "chat" --model "gpt-4"
-prompt "greeting" version 1 created
-```
-
-The resulting file will contain the metadata in YAML frontmatter and the template in the body, making it easy to edit prompts directly in a text editor or include them in version control systems.
-
-The dotprompt plugin maintains version history by storing each version in separate files and tracking version metadata. When you update a prompt, a new version is created only if the content hash changes, ensuring that identical content does not create duplicate versions.
-
-## Examples
+## Detailed Examples
 
 ### Adding Prompts
 
