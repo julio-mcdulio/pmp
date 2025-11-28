@@ -54,21 +54,21 @@ wheels = [
 name = "pmp"
 version = "0.1.0"
 source = { editable = "." }
-dependencies = [
-    { name = "pyyaml" },
-]
 
 [package.optional-dependencies]
 test = [
     { name = "pytest" },
 ]
+yaml = [
+    { name = "pyyaml" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
-    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "pyyaml", marker = "extra == 'yaml'", specifier = ">=6.0" },
 ]
-provides-extras = ["test"]
+provides-extras = ["yaml", "test"]
 
 [[package]]
 name = "pygments"

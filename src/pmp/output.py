@@ -5,8 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any, List, Sequence, Dict
 from enum import Enum
-from dataclasses import dataclass
-import yaml
+from pmp.errors import PMPError
 
 
 class OutputFormatType(str, Enum):
@@ -20,6 +19,12 @@ def as_json(payload: Any) -> str:
 
 
 def as_yaml(payload: Any) -> str:
+    try:
+        import yaml
+    except ModuleNotFoundError as e:
+        raise PMPError(
+            "YAML output failed. Make sure you have installed the pmp[yaml] extra dependency. Run: pip install 'pmp[yaml]'."
+        ) from e
     return yaml.safe_dump(payload, sort_keys=False).rstrip()
 
 

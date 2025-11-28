@@ -10,14 +10,11 @@ readme = "README.md"
 authors = [{ name = "PMP Contributors" }]
 license = { text = "MIT" }
 requires-python = ">=3.10"
-dependencies = [
-    "PyYAML>=6.0",
-]
+dependencies = []
 
 [project.optional-dependencies]
-test = [
-    "pytest>=8.0",
-]
+yaml = ["PyYAML>=6.0"]
+test = ["pytest>=8.0"]
 
 [project.scripts]
 pmp = "pmp.cli:main"

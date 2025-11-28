@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import argparse
 import sys
-from typing import Dict, List, Optional, Sequence
+from typing import List, Optional, Sequence
 
 from pmp.backends import load_backend
+from pmp.output import OutputFormatType
 from pmp.config import (
     ConfigManager,
     dumps as dump_config,
@@ -33,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     get_parser = subparsers.add_parser("get", help="Retrieve a prompt")
     get_parser.add_argument("name")
     get_parser.add_argument("--version", type=int)
-    get_parser.add_argument("--format", choices=["raw", "json", "yaml"], default="raw")
+    get_parser.add_argument("--format", choices=OutputFormatType, default="raw")
 
     update_parser = subparsers.add_parser("update", help="Update an existing prompt")
     update_parser.add_argument("name")
@@ -51,7 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser.add_argument(
         "--long", action="store_true", help="Display human-readable table"
     )
-    list_parser.add_argument("--format", choices=["raw", "json", "yaml"], default="raw")
+    list_parser.add_argument("--format", choices=OutputFormatType, default="raw")
     list_parser.add_argument("--tag", help="Filter by tag")
     list_parser.add_argument("--model", help="Filter by model")
 

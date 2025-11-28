@@ -9,6 +9,7 @@ from typing import Tuple
 import pytest
 
 from pmp import cli
+from pmp.output import as_yaml
 
 
 def _write_backend_config(tmp_path: Path, backend: str) -> Tuple[Path, Path]:
