@@ -18,6 +18,7 @@ from pmp.errors import ConfigError, PMPError
 from pmp.output import print_get, print_list
 from pmp.services import PromptService
 from pmp.utils import parse_tags, read_content
+from pmp.editor import edit_with_editor
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -105,7 +106,10 @@ def run_command(args: argparse.Namespace) -> int:
     service = PromptService(backend)
 
     if args.command == "add":
-        content = read_content(args.file, args.content)
+        if not args.file and not args.content:
+            content = edit_with_editor()
+        else:
+            content = read_content(args.file, args.content)
         metadata_tags = parse_tags(args.tag)
         record = service.add_prompt(args.name, content, metadata_tags, args.model)
         print(f'prompt "{args.name}" version {record["version"]} created')
@@ -117,7 +121,10 @@ def run_command(args: argparse.Namespace) -> int:
         return 0
 
     elif args.command == "update":
-        content = read_content(args.file, args.content)
+        if not args.file and not args.content:
+            content = edit_with_editor()
+        else:
+            content = read_content(args.file, args.content)
         tags = parse_tags(args.tag) if args.tag is not None else None
         record = service.update_prompt(args.name, content, tags, args.model)
         print(f'prompt "{args.name}" version {record["version"]} created')
@@ -187,8 +194,8 @@ def handle_profile(
 
 
 def _add_content_flags(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--file", help="Read prompt content from file")
-    parser.add_argument("--content", help="Inline prompt content")
+    parser.add_argument("--file", help="Read prompt content from file", required=False)
+    parser.add_argument("--content", help="Inline prompt content", required=False)
 
 
 def _add_metadata_flags(parser: argparse.ArgumentParser) -> None:
