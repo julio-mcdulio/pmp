@@ -2,7 +2,15 @@
 
 A simple prompt management tool supporting different storage backends.
 
-Install pmp using uv or pip. The project requires Python 3.10 or higher.
+## Table of Contents
+
+- [Quickstart](#quickstart)
+- [Examples](#examples)
+- [Use with other tools](#use-with-other-tools)
+
+## Quickstart
+
+Install `pmp` using `uv` or `pip`. The project requires Python 3.10 or higher.
 
 ```bash
 # With uv
@@ -18,7 +26,7 @@ For development, install with test dependencies:
 $ uv pip install -e ".[test]"
 ```
 
-## Configuration
+### Configuration
 
 Configure pmp by setting the backend and storage location. The file backend stores prompts as JSON files, while the sqlite backend uses a SQLite database.
 
@@ -43,7 +51,9 @@ $ pmp config profile use local
 profile "local" activated
 ```
 
-## Adding Prompts
+## Examples
+
+### Adding Prompts
 
 Add a prompt with content, tags, and an associated model:
 
@@ -52,7 +62,7 @@ $ pmp add demo --content "You are a helpful assistant" --tag "chat,general" --mo
 prompt "demo" version 1 created
 ```
 
-## Retrieving Prompts
+### Retrieving Prompts
 
 Retrieve a prompt in different formats:
 
@@ -87,7 +97,7 @@ metadata:
 created_at: '2025-11-27T22:03:40+00:00'
 ```
 
-## Updating Prompts
+### Updating Prompts
 
 Update an existing prompt to create a new version:
 
@@ -96,7 +106,7 @@ $ pmp update demo --content "You are an expert assistant" --tag "expert,chat"
 prompt "demo" version 2 created
 ```
 
-## Listing Prompts
+### Listing Prompts
 
 List all prompts:
 
@@ -137,7 +147,7 @@ $ pmp list --model gpt-4
 demo
 ```
 
-## Deleting Prompts
+### Deleting Prompts
 
 Delete a specific version or all versions of a prompt:
 
@@ -149,7 +159,7 @@ $ pmp delete demo --force
 prompt "demo" deleted versions [2, 3]
 ```
 
-## Reading from Files
+### Reading from Files
 
 Read prompt content from a file:
 
@@ -158,7 +168,7 @@ $ pmp add my-prompt --file prompt.txt --tag "production"
 prompt "my-prompt" version 1 created
 ```
 
-## Viewing Configuration
+### Viewing Configuration
 
 View and modify configuration:
 
@@ -186,7 +196,7 @@ backend = "sqlite"
 path = "~/.pmp/remote.db"
 ```
 
-## Command Overrides
+### Command Overrides
 
 Override the active profile or backend for a single command:
 
@@ -198,7 +208,7 @@ $ pmp --backend sqlite list
 test-sqlite
 ```
 
-## Integration with Other Tools
+## Use with other tools
 
 pmp prompts can be easily used with other CLI tools. Here are examples using [llm](https://github.com/simonw/llm):
 
