@@ -17,7 +17,7 @@ from pmp.config import (
 from pmp.errors import ConfigError, PMPError
 from pmp.output import print_get, print_list
 from pmp.services import PromptService
-from pmp.utils import parse_tags, read_content
+from pmp.utils import parse_tags, read_content, render_template
 from pmp.editor import edit_with_editor
 
 
@@ -34,8 +34,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     get_parser = subparsers.add_parser("get", help="Retrieve a prompt")
     get_parser.add_argument("name")
+    get_parser.add_argument(
+        "--vars",
+        nargs="+",
+        type=str,
+        metavar="KEY=VALUE",
+        help="Substitute variable values in the prompt. Use key=value pairs to define variables. Repeatable.",
+        default=None,
+    )
     get_parser.add_argument("--version", type=int)
-    get_parser.add_argument("--format", choices=OutputFormatType, default="raw")
+    get_parser.add_argument(
+        "--format", type=OutputFormatType, default=OutputFormatType.RAW
+    )
 
     update_parser = subparsers.add_parser("update", help="Update an existing prompt")
     update_parser.add_argument("name")
@@ -53,7 +63,9 @@ def build_parser() -> argparse.ArgumentParser:
     list_parser.add_argument(
         "--long", action="store_true", help="Display human-readable table"
     )
-    list_parser.add_argument("--format", choices=OutputFormatType, default="raw")
+    list_parser.add_argument(
+        "--format", type=OutputFormatType, default=OutputFormatType.RAW
+    )
     list_parser.add_argument("--tag", help="Filter by tag")
     list_parser.add_argument("--model", help="Filter by model")
 
@@ -117,6 +129,11 @@ def run_command(args: argparse.Namespace) -> int:
 
     elif args.command == "get":
         record = service.get_prompt(args.name, args.version)
+        if args.vars:
+            record["content"] = render_template(
+                record["content"],
+                {key: value for key, value in [var.split("=") for var in args.vars]},
+            )
         print_get(record, args.format)
         return 0
 

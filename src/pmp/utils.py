@@ -6,8 +6,21 @@ import os
 import sys
 from pathlib import Path
 from typing import List, Optional
-
+from typing import Any, Dict
 from pmp.errors import PMPError
+from string import Template
+
+
+class BraceTemplate(Template):
+    """Template class that uses {{variable}} syntax instead of $variable."""
+
+    pattern = r"""
+        \{\{              # Match opening double braces
+        \s*               # Optional whitespace
+        (?P<named>[_a-z][_a-z0-9]*)  # Variable name (same pattern as Template)
+        \s*               # Optional whitespace
+        \}\}              # Match closing double braces
+        """
 
 
 def read_content(file_path: Optional[str], inline: Optional[str]) -> str:
@@ -54,3 +67,7 @@ def expand_path(value: Optional[str]) -> Optional[str]:
         return None
     return os.path.expandvars(os.path.expanduser(value))
 
+
+def render_template(template: str, vars: Dict[str, Any]) -> str:
+    """Render a template with variables matching {{ variable_name }}"""
+    return BraceTemplate(template).substitute(**vars)

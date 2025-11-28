@@ -423,3 +423,27 @@ def test_config_list_output(
     assert "[backends.sqlite]" in config_output
     assert "[profiles.test]" in config_output
     assert 'backend = "sqlite"' in config_output or "sqlite" in config_output
+
+
+@pytest.mark.parametrize("backend_name", ["file", "sqlite"])
+def test_cli_template_rendering(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    backend_name: str,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Test template rendering in CLI commands."""
+    config_path, _ = _write_backend_config(tmp_path, backend_name)
+    monkeypatch.setenv("PMP_CONFIG_FILE", str(config_path))
+
+    assert (
+        cli.main(
+            ["add", "demo", "--content", "Hello, {{name}}! You are {{age}} years old."]
+        )
+        == 0
+    )
+    capsys.readouterr()
+
+    assert cli.main(["get", "demo", "--vars", "name=John", "age=30"]) == 0
+    content = capsys.readouterr().out
+    assert content == "Hello, John! You are 30 years old.\n"
