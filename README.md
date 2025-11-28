@@ -78,7 +78,7 @@ profile "local" activated
 `pmp` supports storage plugins that extend the default backends with additional functionality. Storage plugins use the pluggy plugin system and can be installed as optional dependencies.
 
 The following plugins are currrently supported:
-- [dotprompt](./src/pmp/plugins/README.md)
+- [dotprompt](./src/pmp/plugins/dotprompt/README.md)
 
 ## Detailed Examples
 
