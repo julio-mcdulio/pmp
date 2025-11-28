@@ -7,9 +7,14 @@ import sys
 from typing import Dict, List, Optional, Sequence
 
 from pmp.backends import load_backend
-from pmp.config import ConfigManager, dumps as dump_config
+from pmp.config import (
+    ConfigManager,
+    dumps as dump_config,
+    parse_value,
+    parse_profile_options,
+)
 from pmp.errors import ConfigError, PMPError
-from pmp.output import as_json, as_yaml, render_table
+from pmp.output import print_get, print_list
 from pmp.services import PromptService
 from pmp.utils import parse_tags, read_content
 
@@ -38,10 +43,14 @@ def build_parser() -> argparse.ArgumentParser:
     delete_parser = subparsers.add_parser("delete", help="Delete a prompt or version")
     delete_parser.add_argument("name")
     delete_parser.add_argument("--version", type=int)
-    delete_parser.add_argument("--force", action="store_true", help="Delete all versions")
+    delete_parser.add_argument(
+        "--force", action="store_true", help="Delete all versions"
+    )
 
     list_parser = subparsers.add_parser("list", help="List prompts")
-    list_parser.add_argument("--long", action="store_true", help="Display human-readable table")
+    list_parser.add_argument(
+        "--long", action="store_true", help="Display human-readable table"
+    )
     list_parser.add_argument("--format", choices=["raw", "json", "yaml"], default="raw")
     list_parser.add_argument("--tag", help="Filter by tag")
     list_parser.add_argument("--model", help="Filter by model")
@@ -88,7 +97,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 def run_command(args: argparse.Namespace) -> int:
     manager = ConfigManager()
-    backend_settings = manager.resolve_backend(backend_override=args.backend, profile_override=args.profile)
+    backend_settings = manager.resolve_backend(
+        backend_override=args.backend, profile_override=args.profile
+    )
     backend = load_backend(backend_settings.name, backend_settings.options)
     service = PromptService(backend)
 
@@ -99,19 +110,19 @@ def run_command(args: argparse.Namespace) -> int:
         print(f'prompt "{args.name}" version {record["version"]} created')
         return 0
 
-    if args.command == "get":
+    elif args.command == "get":
         record = service.get_prompt(args.name, args.version)
-        _print_get(record, args.format)
+        print_get(record, args.format)
         return 0
 
-    if args.command == "update":
+    elif args.command == "update":
         content = read_content(args.file, args.content)
         tags = parse_tags(args.tag) if args.tag is not None else None
         record = service.update_prompt(args.name, content, tags, args.model)
         print(f'prompt "{args.name}" version {record["version"]} created')
         return 0
 
-    if args.command == "delete":
+    elif args.command == "delete":
         record = service.delete_prompt(args.name, args.version, args.force)
         if "deleted_versions" in record:
             versions = ", ".join(str(v) for v in sorted(record["deleted_versions"]))
@@ -120,77 +131,44 @@ def run_command(args: argparse.Namespace) -> int:
             print(f'prompt "{args.name}" version {record["version"]} deleted')
         return 0
 
-    if args.command == "list":
+    elif args.command == "list":
         prompts = service.list_prompts(args.tag, args.model)
-        _print_list(prompts, args)
+        print_list(prompts, args.format, args.long)
         return 0
 
-    raise PMPError(f'unknown command "{args.command}"')
-
-
-def _print_get(record: Dict[str, Any], format_: str) -> None:
-    if format_ == "raw":
-        print(record["content"], end="" if record["content"].endswith("\n") else "\n")
-    elif format_ == "json":
-        print(as_json(record))
     else:
-        print(as_yaml(record))
-
-
-def _print_list(prompts: List[Dict[str, Any]], args: argparse.Namespace) -> None:
-    if args.format == "json":
-        print(as_json(prompts))
-        return
-    if args.format == "yaml":
-        print(as_yaml(prompts))
-        return
-    if args.long:
-        rows = []
-        for item in prompts:
-            metadata = item.get("metadata", {})
-            tags = ",".join(metadata.get("tags", []))
-            rows.append(
-                [
-                    item["name"],
-                    str(item["latest_version"]),
-                    tags,
-                    metadata.get("model", "") or "",
-                    item.get("updated_at", ""),
-                ]
-            )
-        if rows:
-            print(render_table(rows, headers=["NAME", "VERSION", "TAGS", "MODEL", "UPDATED"]))
-        return
-    for item in prompts:
-        print(item["name"])
+        raise PMPError(f'unknown command "{args.command}"')
 
 
 def handle_config(args: argparse.Namespace, unknown: List[str]) -> None:
     manager = ConfigManager()
     if args.config_command == "set":
-        value = _parse_value(args.value)
+        value = parse_value(args.value)
         manager.set_value(args.key, value)
         manager.save()
-        print(f'{args.key} = {args.value}')
+        print(f"{args.key} = {args.value}")
         return
-    if args.config_command == "get":
+    elif args.config_command == "get":
         value = manager.get_value(args.key)
         if value is None:
             raise ConfigError(f'key "{args.key}" is not set')
         print(value)
         return
-    if args.config_command == "list":
+    elif args.config_command == "list":
         print(dump_config(manager.data), end="")
         return
-    if args.config_command == "profile":
-        _handle_profile(manager, args, unknown)
+    elif args.config_command == "profile":
+        handle_profile(manager, args, unknown)
         return
-    raise PMPError(f'unknown config command "{args.config_command}"')
+    else:
+        raise PMPError(f'unknown config command "{args.config_command}"')
 
 
-def _handle_profile(manager: ConfigManager, args: argparse.Namespace, unknown: List[str]) -> None:
+def handle_profile(
+    manager: ConfigManager, args: argparse.Namespace, unknown: List[str]
+) -> None:
     if args.profile_command == "add":
-        options = _parse_profile_options(unknown)
+        options = parse_profile_options(unknown)
         profile = manager.ensure_profile(args.name)
         profile.clear()
         profile["backend"] = args.backend
@@ -198,29 +176,13 @@ def _handle_profile(manager: ConfigManager, args: argparse.Namespace, unknown: L
         manager.save()
         print(f'profile "{args.name}" updated')
         return
-    if args.profile_command == "use":
+    elif args.profile_command == "use":
         manager.set_active_profile(args.name)
         manager.save()
         print(f'profile "{args.name}" activated')
         return
-    raise PMPError(f'unknown profile command "{args.profile_command}"')
-
-
-def _parse_profile_options(tokens: List[str]) -> Dict[str, object]:
-    options: Dict[str, object] = {}
-    idx = 0
-    while idx < len(tokens):
-        token = tokens[idx]
-        if not token.startswith("--"):
-            raise ConfigError(f'unrecognized option "{token}"')
-        key = token[2:]
-        idx += 1
-        if idx >= len(tokens):
-            raise ConfigError(f'missing value for "{token}"')
-        value = tokens[idx]
-        idx += 1
-        options[key.replace("-", "_")] = _parse_value(value)
-    return options
+    else:
+        raise PMPError(f'unknown profile command "{args.profile_command}"')
 
 
 def _add_content_flags(parser: argparse.ArgumentParser) -> None:
@@ -229,20 +191,10 @@ def _add_content_flags(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_metadata_flags(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--tag", action="append", help="Comma-separated tags (repeatable)")
+    parser.add_argument(
+        "--tag", action="append", help="Comma-separated tags (repeatable)"
+    )
     parser.add_argument("--model", help="Associate prompt with a model")
-
-
-def _parse_value(raw: str) -> object:
-    lowered = raw.lower()
-    if lowered in {"true", "false"}:
-        return lowered == "true"
-    for caster in (int, float):
-        try:
-            return caster(raw)
-        except ValueError:
-            continue
-    return raw
 
 
 def _allows_unknown(args: argparse.Namespace) -> bool:

@@ -34,11 +34,12 @@ class ConfigManager:
 
     def __init__(self, config_path: Optional[str] = None):
         env_path = os.environ.get("PMP_CONFIG_FILE")
-        raw_path = config_path or env_path or (Path.home() / ".config" / "pmp" / "config.toml")
+        raw_path = (
+            config_path or env_path or (Path.home() / ".config" / "pmp" / "config.toml")
+        )
         self.path = Path(raw_path).expanduser()
         self._data = self._load()
 
-    # ------------------------------------------------------------------ public
     @property
     def data(self) -> Dict[str, Any]:
         return copy.deepcopy(self._data)
@@ -56,7 +57,9 @@ class ConfigManager:
         key_parts = _normalize_key_path(dotted_key.split("."))
         return _get_nested(self._data, key_parts, default)
 
-    def resolve_backend(self, backend_override: Optional[str], profile_override: Optional[str]) -> BackendSettings:
+    def resolve_backend(
+        self, backend_override: Optional[str], profile_override: Optional[str]
+    ) -> BackendSettings:
         env_profile, env_backend, env_backend_opts = _read_env_overrides()
         profile_name = profile_override or env_profile or self._data.get("profile")
         profiles = self._data.get("profiles", {})
@@ -81,7 +84,9 @@ class ConfigManager:
         if backend_name in env_backend_opts:
             options.update(env_backend_opts[backend_name])
 
-        return BackendSettings(name=backend_name, options=_expand_backend_options(backend_name, options))
+        return BackendSettings(
+            name=backend_name, options=_expand_backend_options(backend_name, options)
+        )
 
     def ensure_profile(self, name: str) -> Dict[str, Any]:
         profiles = self._data.setdefault("profiles", {})
@@ -99,22 +104,53 @@ class ConfigManager:
             raise ConfigError(f'profile "{name}" does not exist')
         self._data["profile"] = name
 
-    # ----------------------------------------------------------------- internal
     def _load(self) -> Dict[str, Any]:
         if not self.path.exists():
             return {}
         with self.path.open("rb") as handle:
             try:
                 return tomllib.load(handle)
-            except tomllib.TOMLDecodeError as exc:  # pragma: no cover - invalid file is rare
+            except (
+                tomllib.TOMLDecodeError
+            ) as exc:  # pragma: no cover - invalid file is rare
                 raise ConfigError(f"invalid config: {exc}") from exc
 
 
-# --------------------------------------------------------------------- helpers
+## Helpers
+
 DEFAULT_BACKEND_OPTIONS: Dict[str, Dict[str, Any]] = {
     "file": {"path": DEFAULT_FILE_BACKEND_PATH},
     "sqlite": {"path": DEFAULT_SQLITE_BACKEND_PATH},
 }
+
+
+def parse_value(raw: str) -> object:
+    lowered = raw.lower()
+    if lowered in {"true", "false"}:
+        return lowered == "true"
+    for caster in (int, float):
+        try:
+            return caster(raw)
+        except ValueError:
+            continue
+    return raw
+
+
+def parse_profile_options(tokens: List[str]) -> Dict[str, object]:
+    options: Dict[str, object] = {}
+    idx = 0
+    while idx < len(tokens):
+        token = tokens[idx]
+        if not token.startswith("--"):
+            raise ConfigError(f'unrecognized option "{token}"')
+        key = token[2:]
+        idx += 1
+        if idx >= len(tokens):
+            raise ConfigError(f'missing value for "{token}"')
+        value = tokens[idx]
+        idx += 1
+        options[key.replace("-", "_")] = parse_value(value)
+    return options
 
 
 def _ensure_dict(value: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -135,7 +171,9 @@ def _expand_backend_options(name: str, options: Dict[str, Any]) -> Dict[str, Any
     return expanded
 
 
-def _read_env_overrides() -> Tuple[Optional[str], Optional[str], Dict[str, Dict[str, Any]]]:
+def _read_env_overrides() -> (
+    Tuple[Optional[str], Optional[str], Dict[str, Dict[str, Any]]]
+):
     profile = os.environ.get("PMP_PROFILE")
     backend = os.environ.get("PMP_BACKEND")
     backend_opts: Dict[str, Dict[str, Any]] = {}
@@ -149,7 +187,9 @@ def _read_env_overrides() -> Tuple[Optional[str], Optional[str], Dict[str, Dict[
             continue
         backend_name = parts[0].lower()
         option_key = "_".join(parts[1:]).lower()
-        backend_opts.setdefault(backend_name, {})[option_key.replace("_", "-")] = _coerce_value(raw_value)
+        backend_opts.setdefault(backend_name, {})[option_key.replace("_", "-")] = (
+            _coerce_value(raw_value)
+        )
     return profile, backend.lower() if backend else None, backend_opts
 
 
@@ -179,7 +219,9 @@ def _set_nested(target: Dict[str, Any], parts: List[str], value: Any) -> None:
     for part in parts[:-1]:
         scope = scope.setdefault(part, {})
         if not isinstance(scope, dict):
-            raise ConfigError(f'cannot assign "{ ".".join(parts) }" inside non-table key')
+            raise ConfigError(
+                f'cannot assign "{ ".".join(parts) }" inside non-table key'
+            )
     scope[parts[-1]] = value
 
 
@@ -208,7 +250,9 @@ def dumps(data: Dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _split_table(table: Dict[str, Any]) -> Tuple[List[Tuple[str, Any]], List[Tuple[str, Dict[str, Any]]]]:
+def _split_table(
+    table: Dict[str, Any],
+) -> Tuple[List[Tuple[str, Any]], List[Tuple[str, Dict[str, Any]]]]:
     scalars: List[Tuple[str, Any]] = []
     group: List[Tuple[str, Dict[str, Any]]] = []
     for key, value in table.items():
@@ -242,4 +286,3 @@ def format_toml_value(value: Any) -> str:
         return '""'
     text = str(value).replace("\\", "\\\\").replace('"', '\\"')
     return f'"{text}"'
-

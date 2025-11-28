@@ -30,23 +30,31 @@ def _write_backend_config(tmp_path: Path, backend: str) -> Tuple[Path, Path]:
 
 
 @pytest.mark.parametrize("backend_name", ["file", "sqlite"])
-def test_cli_crud_workflow(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, backend_name: str, capsys: pytest.CaptureFixture[str]) -> None:
+def test_cli_crud_workflow(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    backend_name: str,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """Exercise add/get/update/list/delete for both backends."""
     config_path, _ = _write_backend_config(tmp_path, backend_name)
     monkeypatch.setenv("PMP_CONFIG_FILE", str(config_path))
 
-    assert cli.main(
-        [
-            "add",
-            "demo",
-            "--content",
-            "initial content",
-            "--tag",
-            "alpha,beta",
-            "--model",
-            "gpt-4",
-        ]
-    ) == 0
+    assert (
+        cli.main(
+            [
+                "add",
+                "demo",
+                "--content",
+                "initial content",
+                "--tag",
+                "alpha,beta",
+                "--model",
+                "gpt-4",
+            ]
+        )
+        == 0
+    )
     capsys.readouterr()
 
     assert cli.main(["get", "demo", "--format", "json"]) == 0
@@ -55,7 +63,10 @@ def test_cli_crud_workflow(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, back
     assert payload["metadata"]["tags"] == ["alpha", "beta"]
     assert payload["metadata"]["model"] == "gpt-4"
 
-    assert cli.main(["update", "demo", "--content", "second revision", "--tag", "alpha"]) == 0
+    assert (
+        cli.main(["update", "demo", "--content", "second revision", "--tag", "alpha"])
+        == 0
+    )
     capsys.readouterr()
 
     assert cli.main(["list", "--format", "json"]) == 0
@@ -84,7 +95,9 @@ def test_cli_crud_workflow(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, back
     assert remaining == []
 
 
-def test_config_commands_and_profiles(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_config_commands_and_profiles(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     """Verify config set/get/list and profile management flow."""
     config_file = tmp_path / "config.toml"
     monkeypatch.setenv("PMP_CONFIG_FILE", str(config_file))
@@ -96,18 +109,21 @@ def test_config_commands_and_profiles(monkeypatch: pytest.MonkeyPatch, tmp_path:
     assert capsys.readouterr().out.strip() == "file"
 
     sqlite_db = tmp_path / "remote.db"
-    assert cli.main(
-        [
-            "config",
-            "profile",
-            "add",
-            "remote",
-            "--backend",
-            "sqlite",
-            "--path",
-            str(sqlite_db),
-        ]
-    ) == 0
+    assert (
+        cli.main(
+            [
+                "config",
+                "profile",
+                "add",
+                "remote",
+                "--backend",
+                "sqlite",
+                "--path",
+                str(sqlite_db),
+            ]
+        )
+        == 0
+    )
     capsys.readouterr()
 
     assert cli.main(["config", "profile", "use", "remote"]) == 0
@@ -122,7 +138,10 @@ def test_config_commands_and_profiles(monkeypatch: pytest.MonkeyPatch, tmp_path:
 
 @pytest.mark.parametrize("backend_name", ["file", "sqlite"])
 def test_cli_error_flows(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, backend_name: str, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    backend_name: str,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Ensure duplicate operations and missing resources surface clear errors."""
     config_path, _ = _write_backend_config(tmp_path, backend_name)
