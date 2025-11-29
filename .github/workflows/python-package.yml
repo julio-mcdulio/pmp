@@ -43,3 +43,5 @@ jobs:
       run: |
         pytest tests
         pytest -m dotprompt tests
+    - name: coverage.py badge
+      uses: tj-actions/coverage-badge-py@v2.0.4
