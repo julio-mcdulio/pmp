@@ -26,9 +26,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip uv
-        python -m pip install flake8 pytest
-        uv venv .venv && uv pip install ".[yaml]" ".[dotprompt]"
+        python -m pip install --upgrade uv
+        uv venv .venv
+        source .venv/bin/activate
+        uv pip install flake8 pytest
+        uv pip install ".[yaml]" ".[dotprompt]"
+        echo "VIRTUAL_ENV=$(pwd)/.venv" >> $GITHUB_ENV
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -37,4 +40,5 @@ jobs:
         flake8 src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        VIRTUAL_ENV=.venv .venv/bin/pytest
+        pytest tests
+        pytest -m dotprompt tests
