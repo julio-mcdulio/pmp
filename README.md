@@ -1,5 +1,7 @@
 # pmp
 
+[![Python package](https://github.com/julio-mcdulio/pmp/actions/workflows/python-package.yml/badge.svg?branch=main)](https://github.com/julio-mcdulio/pmp/actions/workflows/python-package.yml)
+
 A simple prompt management tool supporting different storage backends.
 
 ## Table of Contents
