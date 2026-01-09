@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 from importlib.util import find_spec
 
 
-class PromptBackend(ABC):
+class PromptStorageBackend(ABC):
     """Interface all backends must implement."""
 
     @abstractmethod
@@ -39,7 +39,7 @@ if find_spec("pluggy"):
     hookspec = pluggy.HookspecMarker("pmp.backends")
     hookimpl = pluggy.HookimplMarker("pmp.backends")
 
-    class PromptBackendStoragePlugin(ABC):
+    class PromptStorageBackendPlugin(ABC):
         """Plugin interface for prompt storage backends."""
 
         @hookspec

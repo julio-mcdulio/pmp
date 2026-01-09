@@ -7,14 +7,14 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from pmp.backends.base import PromptBackend
+from pmp.backends.storage.base import PromptStorageBackend
 from pmp.errors import PMPError, PromptAlreadyExists, PromptNotFound, VersionNotFound
 from pmp.models import PromptSummary, PromptVersion, utcnow_iso
 
 SAFE_NAME = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
-class FileBackend(PromptBackend):
+class FileBackend(PromptStorageBackend):
     """Stores prompts as JSON documents on disk."""
 
     def __init__(self, path: str):

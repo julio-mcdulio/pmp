@@ -7,12 +7,12 @@ import sqlite3
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from pmp.backends.base import PromptBackend
+from pmp.backends.storage.base import PromptStorageBackend
 from pmp.errors import PMPError, PromptAlreadyExists, PromptNotFound, VersionNotFound
 from pmp.models import PromptSummary, PromptVersion, utcnow_iso
 
 
-class SQLiteBackend(PromptBackend):
+class SQLiteBackend(PromptStorageBackend):
     """Stores prompts in a SQLite database."""
 
     def __init__(self, path: str):
