@@ -74,7 +74,7 @@ class SQLiteBackend(PromptStorageBackend):
             "created_at": row[3],
         }
 
-    def update(self, name: str, content: str, metadata: Dict[str, object]) -> None:
+    def edit(self, name: str, content: str, metadata: Dict[str, object]) -> None:
         """Append a new version for an existing prompt."""
         prompt_id = self._prompt_id(name)
         current_version = self.conn.execute(

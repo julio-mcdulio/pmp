@@ -6,7 +6,7 @@ import argparse
 import sys
 from typing import List, Optional, Sequence
 
-from pmp.backends import load_backend
+from pmp.plugins import load_backend, PluginTypes
 from pmp.output import OutputFormatType
 from pmp.config import (
     ConfigManager,
@@ -47,10 +47,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--format", type=OutputFormatType, default=OutputFormatType.RAW
     )
 
-    update_parser = subparsers.add_parser("update", help="Update an existing prompt")
-    update_parser.add_argument("name")
-    _add_content_flags(update_parser)
-    _add_metadata_flags(update_parser)
+    edit_parser = subparsers.add_parser("edit", help="edit an existing prompt")
+    edit_parser.add_argument("name")
+    _add_content_flags(edit_parser)
+    _add_metadata_flags(edit_parser)
 
     delete_parser = subparsers.add_parser("delete", help="Delete a prompt or version")
     delete_parser.add_argument("name")
@@ -114,8 +114,8 @@ def run_command(args: argparse.Namespace) -> int:
     backend_settings = manager.resolve_backend(
         backend_override=args.backend, profile_override=args.profile
     )
-    backend = load_backend(backend_settings.name, backend_settings.options)
-    service = PromptService(backend)
+    backend = load_backend(backend_settings.name, PluginTypes.STORAGE, backend_settings.options)
+    service = PromptService(storage_backend=backend)
 
     if args.command == "add":
         if not args.file and not args.content:
@@ -137,9 +137,10 @@ def run_command(args: argparse.Namespace) -> int:
         print_get(record, args.format)
         return 0
 
-    elif args.command == "update":
+    elif args.command == "edit":
+        record = service.get_prompt(args.name)
         if not args.file and not args.content:
-            content = edit_with_editor()
+            content = edit_with_editor(record["content"])
         else:
             content = read_content(args.file, args.content)
         tags = parse_tags(args.tag) if args.tag is not None else None

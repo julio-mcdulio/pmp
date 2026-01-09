@@ -43,7 +43,7 @@ class FileBackend(PromptStorageBackend):
                 return entry
         raise VersionNotFound(f'prompt "{name}" version {version} not found')
 
-    def update(self, name: str, content: str, metadata: Dict[str, object]) -> None:
+    def edit(self, name: str, content: str, metadata: Dict[str, object]) -> None:
         """Append a new version for an existing prompt."""
         prompt_file = self._prompt_file(name)
         if not prompt_file.is_file():

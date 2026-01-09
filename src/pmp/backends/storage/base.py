@@ -19,7 +19,7 @@ class PromptStorageBackend(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def update(self, name: str, content: str, metadata: Dict[str, object]) -> None:
+    def edit(self, name: str, content: str, metadata: Dict[str, object]) -> None:
         raise NotImplementedError
 
     @abstractmethod

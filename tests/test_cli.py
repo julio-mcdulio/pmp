@@ -65,7 +65,7 @@ def test_cli_crud_workflow(
     assert payload["metadata"]["model"] == "gpt-4"
 
     assert (
-        cli.main(["update", "demo", "--content", "second revision", "--tag", "alpha"])
+        cli.main(["edit", "demo", "--content", "second revision", "--tag", "alpha"])
         == 0
     )
     capsys.readouterr()
