@@ -8,7 +8,7 @@ from typing import Dict
 import pytest
 
 from pmp.errors import PromptAlreadyExists, PromptNotFound, VersionNotFound
-from pmp.plugins.dotprompt.storage import DotPromptBackendStoragePlugin
+from pmp.plugins.storage.dotprompt.storage import DotPromptBackendStoragePlugin
 
 
 @pytest.mark.dotprompt
@@ -354,14 +354,14 @@ path = "{storage_dir}"
 
     # Update to version 2 with different content
     content_v2 = "Version 2 content"
-    plugin.update(name, content_v2, metadata)
+    plugin.edit(name, content_v2, metadata)
     result_v2 = plugin.get(name)
     assert result_v2["version"] == 2
     assert result_v2["version"] != result_v1["version"]
 
     # Now add the same content as version 1 again
     # This should create version 3, NOT return version 1
-    plugin.update(name, content_v1, metadata)
+    plugin.edit(name, content_v1, metadata)
     result_v3 = plugin.get(name)
     assert (
         result_v3["version"] == 3
@@ -403,7 +403,7 @@ path = "{storage_dir}"
 
     # Update to version 2
     content_v2 = "Updated content"
-    plugin.update(name, content_v2, metadata)
+    plugin.edit(name, content_v2, metadata)
     result_v2 = plugin.get(name)
     assert result_v2["version"] == 2
     assert "Updated content" in result_v2["content"]
@@ -411,7 +411,7 @@ path = "{storage_dir}"
 
     # Update to version 3
     content_v3 = "Third version content"
-    plugin.update(name, content_v3, metadata)
+    plugin.edit(name, content_v3, metadata)
     result_v3 = plugin.get(name)
     assert result_v3["version"] == 3
     assert "Third version content" in result_v3["content"]
@@ -447,7 +447,7 @@ path = "{storage_dir}"
     assert version_1 == 1
 
     # Update with same content - should not create new version
-    plugin.update(name, content, metadata)
+    plugin.edit(name, content, metadata)
     result_v2 = plugin.get(name)
     assert (
         result_v2["version"] == version_1
@@ -483,11 +483,11 @@ path = "{storage_dir}"
 
     # Update to version 2
     content_v2 = "Second version"
-    plugin.update(name, content_v2, metadata)
+    plugin.edit(name, content_v2, metadata)
 
     # Update to version 3
     content_v3 = "Third version"
-    plugin.update(name, content_v3, metadata)
+    plugin.edit(name, content_v3, metadata)
 
     # Get specific versions
     result_v1 = plugin.get(name, version=1)
@@ -573,7 +573,7 @@ path = "{storage_dir}"
 
     # Update to version 2
     content_v2 = "Version 2"
-    plugin.update(name, content_v2, metadata)
+    plugin.edit(name, content_v2, metadata)
     result_v2 = plugin.get(name, version=2)
     created_at_v2 = result_v2["created_at"]
     assert created_at_v2 is not None

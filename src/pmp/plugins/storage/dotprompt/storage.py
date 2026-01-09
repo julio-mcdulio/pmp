@@ -219,7 +219,7 @@ class DotPromptBackendStoragePlugin(PromptStorageBackendPlugin):
         }
 
     @hookimpl
-    def update(self, name: str, content: str, metadata: Dict[str, object]) -> None:
+    def edit(self, name: str, content: str, metadata: Dict[str, object]) -> None:
         """Update a prompt - creates a new version if content hash changes."""
 
         # Check if prompt exists
@@ -232,7 +232,7 @@ class DotPromptBackendStoragePlugin(PromptStorageBackendPlugin):
         frontmatter, body = extract_frontmatter_and_body(content)
 
         # Prepare metadata for frontmatter
-        frontmatter_metadata: Dict[str, object] = {}
+        frontmatter_metadata: Dict[str, Any] = {}
 
         # Load existing prompt to merge with existing frontmatter
         try:
