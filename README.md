@@ -43,7 +43,7 @@ Hello, world!
 $ pmp list
 hello
 
-$ pmp update hello --content "Hello, everyone!"
+$ pmp edit hello --content "Hello, everyone!"
 prompt "hello" version 2 created
 
 $ pmp delete hello --force
@@ -80,7 +80,7 @@ profile "local" activated
 `pmp` supports storage plugins that extend the default backends with additional functionality. Storage plugins use the pluggy plugin system and can be installed as optional dependencies.
 
 The following plugins are currrently supported:
-- [dotprompt](./src/pmp/plugins/dotprompt/README.md)
+- [dotprompt](./src/pmp/plugins/storage/dotprompt/README.md)
 
 ## Detailed Examples
 
@@ -133,7 +133,7 @@ created_at: '2025-11-27T22:03:40+00:00'
 Update an existing prompt to create a new version:
 
 ```bash
-$ pmp update demo --content "You are an expert assistant" --tag "expert,chat"
+$ pmp edit demo --content "You are an expert assistant" --tag "expert,chat"
 prompt "demo" version 2 created
 ```
 
