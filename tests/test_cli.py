@@ -95,48 +95,6 @@ def test_cli_crud_workflow(
     remaining = json.loads(capsys.readouterr().out)
     assert remaining == []
 
-
-def test_config_commands_and_profiles(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    """Verify config set/get/list and profile management flow."""
-    config_file = tmp_path / "config.toml"
-    monkeypatch.setenv("PMP_CONFIG_FILE", str(config_file))
-
-    assert cli.main(["config", "set", "backend", "file"]) == 0
-    capsys.readouterr()
-
-    assert cli.main(["config", "get", "backend"]) == 0
-    assert capsys.readouterr().out.strip() == "file"
-
-    sqlite_db = tmp_path / "remote.db"
-    assert (
-        cli.main(
-            [
-                "config",
-                "profile",
-                "add",
-                "remote",
-                "--backend",
-                "sqlite",
-                "--path",
-                str(sqlite_db),
-            ]
-        )
-        == 0
-    )
-    capsys.readouterr()
-
-    assert cli.main(["config", "profile", "use", "remote"]) == 0
-    capsys.readouterr()
-
-    assert cli.main(["config", "list"]) == 0
-    config_text = capsys.readouterr().out
-    assert "[profiles.remote]" in config_text
-    assert 'backend = "sqlite"' in config_text
-    assert str(sqlite_db) in config_text
-
-
 @pytest.mark.parametrize("backend_name", ["file", "sqlite"])
 def test_cli_error_flows(
     monkeypatch: pytest.MonkeyPatch,
@@ -204,58 +162,6 @@ def test_config_all_possible_values(
     capsys.readouterr()
     assert cli.main(["config", "get", "backends.sqlite.database"]) == 0
     assert capsys.readouterr().out.strip() == sqlite_db
-
-    # Test profile setting
-    assert cli.main(["config", "set", "profile", "test-profile"]) == 0
-    capsys.readouterr()
-    assert cli.main(["config", "get", "profile"]) == 0
-    assert capsys.readouterr().out.strip() == "test-profile"
-
-    # Test profiles with different backends
-    for profile_name, backend in [("local", "file"), ("remote", "sqlite")]:
-        profile_path = str(tmp_path / f"{profile_name}_store")
-        if backend == "sqlite":
-            profile_path += ".db"
-
-        # Create profile via CLI
-        assert (
-            cli.main(
-                [
-                    "config",
-                    "profile",
-                    "add",
-                    profile_name,
-                    "--backend",
-                    backend,
-                    "--path",
-                    profile_path,
-                ]
-            )
-            == 0
-        )
-        capsys.readouterr()
-
-        # Verify profile backend
-        assert cli.main(["config", "get", f"profiles.{profile_name}.backend"]) == 0
-        assert capsys.readouterr().out.strip() == backend
-
-        # Verify profile path
-        assert cli.main(["config", "get", f"profiles.{profile_name}.path"]) == 0
-        assert capsys.readouterr().out.strip() == profile_path
-
-    # Test setting profile values directly
-    assert cli.main(["config", "set", "profiles.custom.backend", "file"]) == 0
-    capsys.readouterr()
-    assert (
-        cli.main(["config", "set", "profiles.custom.path", str(tmp_path / "custom")])
-        == 0
-    )
-    capsys.readouterr()
-
-    assert cli.main(["config", "get", "profiles.custom.backend"]) == 0
-    assert capsys.readouterr().out.strip() == "file"
-    assert cli.main(["config", "get", "profiles.custom.path"]) == 0
-    assert str(tmp_path / "custom") in capsys.readouterr().out.strip()
 
 
 def test_config_value_types(
@@ -396,24 +302,6 @@ def test_config_list_output(
     )
     capsys.readouterr()
 
-    # Create a profile
-    assert (
-        cli.main(
-            [
-                "config",
-                "profile",
-                "add",
-                "test",
-                "--backend",
-                "sqlite",
-                "--path",
-                str(tmp_path / "test.db"),
-            ]
-        )
-        == 0
-    )
-    capsys.readouterr()
-
     # List config and verify all values are present
     assert cli.main(["config", "list"]) == 0
     config_output = capsys.readouterr().out
@@ -421,8 +309,6 @@ def test_config_list_output(
     assert 'backend = "file"' in config_output
     assert "[backends.file]" in config_output
     assert "[backends.sqlite]" in config_output
-    assert "[profiles.test]" in config_output
-    assert 'backend = "sqlite"' in config_output or "sqlite" in config_output
 
 
 @pytest.mark.parametrize("backend_name", ["file", "sqlite"])

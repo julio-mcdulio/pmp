@@ -62,18 +62,7 @@ $ pmp config set backends.file.path ~/.pmp/store
 backends.file.path = ~/.pmp/store
 ```
 
-Alternatively, create a profile for different storage configurations:
 
-```bash
-$ pmp config profile add local --backend file --path ~/.pmp/local
-profile "local" updated
-
-$ pmp config profile add remote --backend sqlite --path ~/.pmp/remote.db
-profile "remote" updated
-
-$ pmp config profile use local
-profile "local" activated
-```
 
 ### Storage Plugins
 
@@ -209,32 +198,17 @@ file
 
 $ pmp config list
 backend = "file"
-profile = "local"
-
 [backends]
 
 [backends.file]
 path = "~/.pmp/store"
-
-[profiles]
-
-[profiles.local]
-backend = "file"
-path = "~/.pmp/local"
-
-[profiles.remote]
-backend = "sqlite"
-path = "~/.pmp/remote.db"
 ```
 
 ### Command Overrides
 
-Override the active profile or backend for a single command:
+Override the backend for a single command:
 
 ```bash
-$ pmp --profile remote add temp-prompt --content "Temporary prompt"
-prompt "temp-prompt" version 1 created
-
 $ pmp --backend sqlite list
 test-sqlite
 ```

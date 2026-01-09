@@ -11,19 +11,16 @@ from pmp.output import OutputFormatType
 from pmp.config import (
     ConfigManager,
     dumps as dump_config,
-    parse_value,
-    parse_profile_options,
 )
 from pmp.errors import ConfigError, PMPError
 from pmp.output import print_get, print_list
 from pmp.services import PromptService
-from pmp.utils import parse_tags, read_content, render_template
+from pmp.utils import parse_tags, read_content, render_template, parse_value
 from pmp.editor import edit_with_editor
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pmp", description="Prompt Management CLI")
-    parser.add_argument("--profile", help="Override the active profile")
     parser.add_argument("--backend", help="Override backend name")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -81,24 +78,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     config_sub.add_parser("list", help="Print entire config file")
 
-    profile_parser = config_sub.add_parser("profile", help="Manage profiles")
-    profile_sub = profile_parser.add_subparsers(dest="profile_command", required=True)
-
-    profile_add = profile_sub.add_parser("add", help="Add or update a profile")
-    profile_add.add_argument("name")
-    profile_add.add_argument("--backend", required=True)
-
-    profile_use = profile_sub.add_parser("use", help="Activate a profile")
-    profile_use.add_argument("name")
-
     return parser
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = build_parser()
+
     args, unknown = parser.parse_known_args(argv)
     try:
-        if unknown and not _allows_unknown(args):
+        if unknown:
             parser.error(f"unrecognized arguments: {' '.join(unknown)}")
         if args.command == "config":
             handle_config(args, unknown)
@@ -112,7 +100,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 def run_command(args: argparse.Namespace) -> int:
     manager = ConfigManager()
     backend_settings = manager.resolve_backend(
-        backend_override=args.backend, profile_override=args.profile
+        backend_override=args.backend, profile_override=None
     )
     backend = load_backend(backend_settings.name, PluginTypes.STORAGE, backend_settings.options)
     service = PromptService(storage_backend=backend)
@@ -183,33 +171,8 @@ def handle_config(args: argparse.Namespace, unknown: List[str]) -> None:
     elif args.config_command == "list":
         print(dump_config(manager.data), end="")
         return
-    elif args.config_command == "profile":
-        handle_profile(manager, args, unknown)
-        return
     else:
         raise PMPError(f'unknown config command "{args.config_command}"')
-
-
-def handle_profile(
-    manager: ConfigManager, args: argparse.Namespace, unknown: List[str]
-) -> None:
-    if args.profile_command == "add":
-        options = parse_profile_options(unknown)
-        profile = manager.ensure_profile(args.name)
-        profile.clear()
-        profile["backend"] = args.backend
-        profile.update(options)
-        manager.save()
-        print(f'profile "{args.name}" updated')
-        return
-    elif args.profile_command == "use":
-        manager.set_active_profile(args.name)
-        manager.save()
-        print(f'profile "{args.name}" activated')
-        return
-    else:
-        raise PMPError(f'unknown profile command "{args.profile_command}"')
-
 
 def _add_content_flags(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--file", help="Read prompt content from file", required=False)
@@ -221,11 +184,3 @@ def _add_metadata_flags(parser: argparse.ArgumentParser) -> None:
         "--tag", action="append", help="Comma-separated tags (repeatable)"
     )
     parser.add_argument("--model", help="Associate prompt with a model")
-
-
-def _allows_unknown(args: argparse.Namespace) -> bool:
-    return (
-        getattr(args, "command", None) == "config"
-        and getattr(args, "config_command", None) == "profile"
-        and getattr(args, "profile_command", None) == "add"
-    )

@@ -71,3 +71,14 @@ def expand_path(value: Optional[str]) -> Optional[str]:
 def render_template(template: str, vars: Dict[str, Any]) -> str:
     """Render a template with variables matching {{ variable_name }}"""
     return BraceTemplate(template).substitute(**vars)
+
+def parse_value(raw: str) -> object:
+    lowered = raw.lower()
+    if lowered in {"true", "false"}:
+        return lowered == "true"
+    for caster in (int, float):
+        try:
+            return caster(raw)
+        except ValueError:
+            continue
+    return raw
